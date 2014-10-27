@@ -377,6 +377,10 @@ class WP_Youtube_Upload_Attachment {
 
 		//todo:: cleaner method of recovering file size from aws?
 
+		if ( $size = filesize( $this->get_post()->guid ) ) {
+			return $size;
+		}
+
 		$ch = curl_init( $this->get_post()->guid );
 
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
@@ -500,15 +504,17 @@ class WP_Youtube_Upload_Attachment {
 	function get_embed_html( $args = array() ) {
 
 		$args = wp_parse_args( $args, array(
-			'width'  => '640',
-			'height' => '360'
-		) );
+			'width'           => '640',
+			'height'          => '360',
+			'rel'             => '0',
+			'modestbranding'  => '0',
+  		) );
 
 		if ( $this->is_uploaded() ) {
 
 			ob_start(); ?>
 
-			<iframe width="<?php echo $args['width']; ?>" height="<?php echo $args['height']; ?>" src="//www.youtube.com/embed/<?php echo $this->get_upload_id(); ?>" frameborder="0" allowfullscreen></iframe>
+			<iframe width="<?php echo $args['width']; ?>" height="<?php echo $args['height']; ?>" src="<?php echo esc_url( add_query_arg( $args, 'www.youtube.com/embed/' . $this->get_upload_id() ) ); ?>" frameborder="0" allowfullscreen></iframe>
 
 			<?php $content = ob_get_clean();
 
