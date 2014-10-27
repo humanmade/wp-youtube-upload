@@ -70,7 +70,7 @@ add_action( 'wp_youtube_upload_attachment_upload_complete', function( WP_Youtube
 	wp_schedule_single_event( strtotime( '+10 minutes' ), 'wp_youtube_recursive_check_uploaded_attachment_processed', array( $attachment->get_post_id(), 'recursion' => 1 ) );
 } );
 
-//Recursively check if the upload has finished processing - exit only if the status === processed or if we fail to get a response from the API or we have already checked 5 times
+//Recursively check if the upload has finished processing - exit only if the status !== 'uploaded' or if we fail to get a response from the API or we have already checked 5 times
 add_action( 'wp_youtube_recursive_check_uploaded_attachment_processed', function( $attachment_id, $recursion = 1 ) {
 
 	$recursion++;
@@ -78,7 +78,8 @@ add_action( 'wp_youtube_recursive_check_uploaded_attachment_processed', function
 	$attachment = WP_Youtube_Upload_Attachment::get_instance( $attachment_id );
 	$refreshed  = $attachment->refresh_upload_data();
 
-	if ( $refreshed && $attachment->get_upload_status()->getUploadStatus() !== 'processed' && $recursion <= 5 ) {
+	if ( $refreshed && $attachment->get_upload_status()->getUploadStatus() === 'uploaded' && $recursion <= 5 ) {
+
 		wp_schedule_single_event( strtotime( '+10 minutes' ), 'wp_youtube_recursive_check_uploaded_attachment_processed', array( $attachment->get_post_id(), 'recursion' => $recursion ) );
 	}
 } );
@@ -90,7 +91,7 @@ add_filter( 'wp_video_shortcode_override', function( $bool, $attrs, $content ) {
 	$url = array_filter( array_values( $attrs ), function( $item ) { return ( strpos( $item, 'http' ) !== false ); } )[0];
 	$at  = WP_Youtube_Upload_Attachment::get_instance_from_url( $url );
 
-	if ( ! $at || ! $at->is_processed() ) {
+	if ( ! $at || ! $at->is_uploaded() ) {
 		return '';
 	}
 

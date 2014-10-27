@@ -56,8 +56,30 @@ class WP_Youtube_Upload_Attachment {
 		if ( empty( $posts ) ) {
 			return false;
 		}
-		
-		return static::get_instance( $posts[0] );
+
+		$processed = $uploaded = array();
+
+		//support multiple same upload - find the best fit
+		foreach ( $posts as $post ) {
+
+			$at = static::get_instance( $post );
+
+			if ( $at->is_processed() ) {
+				$processed[] = $at;
+			} else if ( $at->is_uploaded() ) {
+				$uploaded[] = $at;
+			}
+		}
+
+		if ( ! empty( $processed ) ) {
+			return reset( $processed );
+		}
+
+		if ( ! empty( $uploaded ) ) {
+			return reset( $uploaded );
+		}
+
+		return static::get_instance( end( $posts ) );
 	}
 
 	/**
@@ -302,6 +324,10 @@ class WP_Youtube_Upload_Attachment {
 	 * Upload the attachment to youtube
 	 */
 	function upload() {
+
+		if ( $this->is_uploading() ) {
+			return false;
+		}
 
 		$this->set_is_uploading( true );
 
