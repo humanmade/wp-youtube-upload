@@ -78,7 +78,7 @@ add_action( 'wp_youtube_recursive_check_uploaded_attachment_processed', function
 	$attachment = WP_Youtube_Upload_Attachment::get_instance( $attachment_id );
 	$refreshed  = $attachment->refresh_upload_data();
 
-	if ( $refreshed && $attachment->get_upload_status()->getUploadStatus() === 'uploaded' && $recursion <= 5 ) {
+	if ( $refreshed && $attachment->get_upload_status()->getUploadStatus() === 'uploaded' && $recursion > 5 ) {
 
 		wp_schedule_single_event( strtotime( '+10 minutes' ), 'wp_youtube_recursive_check_uploaded_attachment_processed', array( $attachment->get_post_id(), 'recursion' => $recursion ) );
 	}
