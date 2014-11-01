@@ -481,9 +481,9 @@ class WP_Youtube_Upload_Attachment {
 
 			ob_start(); ?>
 
-			<a class="video-thumbnail" href="<?php echo get_the_permalink( $this->get_post_id() ); ?>" style="display: inline-block; <?php echo ! empty( $args['height'] ) ? 'height: ' . $args['height'] . 'px;' : '' ?> <?php echo ! empty( $args['width'] ) ? 'width: ' . $args['width'] . 'px;' : '' ?>">
+			<span class="video-thumbnail" href="<?php echo get_the_permalink( $this->get_post_id() ); ?>" style="display: inline-block; <?php echo ! empty( $args['height'] ) ? 'height: ' . $args['height'] . 'px;' : '' ?> <?php echo ! empty( $args['width'] ) ? 'width: ' . $args['width'] . 'px;' : '' ?>">
 				<img src="<?php echo $thumbnail->getUrl(); ?>" height="<?php echo ! empty( $args['height'] ) ? $args['height'] : '' ?>" width="<?php echo ! empty( $args['width'] ) ? $args['width'] : '' ?>" >
-			</a>
+			</span>
 
 			<?php $contents = ob_get_clean();
 
@@ -507,14 +507,18 @@ class WP_Youtube_Upload_Attachment {
 			'width'           => '640',
 			'height'          => '360',
 			'rel'             => '0',
-			'modestbranding'  => '0',
+			'modestbranding'  => '1',
+			'enablejsapi'     => '1',
+			'autohide'        => '1',
+			'iv_load_policy'  => '3',
+			'fs'              => '1'
   		) );
 
 		if ( $this->is_uploaded() ) {
 
 			ob_start(); ?>
 
-			<iframe width="<?php echo $args['width']; ?>" height="<?php echo $args['height']; ?>" src="<?php echo esc_url( add_query_arg( $args, 'www.youtube.com/embed/' . $this->get_upload_id() ) ); ?>" frameborder="0" allowfullscreen></iframe>
+			<iframe width="<?php echo esc_attr( $args['width'] ); ?>" height="<?php echo esc_attr( $args['height'] ); ?>" src="<?php echo esc_url( add_query_arg( $args, 'https://www.youtube.com/embed/' . $this->get_upload_id() ) ); ?>" frameborder="0" allowfullscreen></iframe>
 
 			<?php $content = ob_get_clean();
 

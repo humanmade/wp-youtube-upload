@@ -21,7 +21,7 @@ add_action( 'add_attachment', function( $attachment ) {
 		return;
 	}
 
-	wp_schedule_single_event( time(), 'wp_youtube_upload_new_video_attachment', array( 'attachment' => $attachment, 'time' => time() ) );
+	wp_schedule_single_event( time(), 'wp_youtube_upload_new_video_attachment', array( 'attachment' => $attachment ) );
 } );
 
 //Capture cron event for uploading attachment to youtube
@@ -101,7 +101,7 @@ add_filter( 'wp_video_shortcode_override', function( $bool, $attrs, $content ) {
 		'loop'     => '',
 		'autoplay' => '',
 		'preload'  => 'metadata',
-		'width'    => 640,
+		'width'    => '100%',
 		'height'   => 360,
 	);
 
@@ -124,3 +124,20 @@ add_filter( 'wp_video_shortcode_override', function( $bool, $attrs, $content ) {
 	return $at->get_embed_html( $atts );
 
 }, 10, 3 );
+
+/**
+ * Add some more supported video types to WordPress as we can handle a wider selelected
+ * per youtube.
+ *
+ * @param  array $extensions
+ * @return array
+ */
+add_filter( 'wp_video_extensions', function( $extensions ) {
+
+	return array_merge( $extensions, array(
+		'mov',
+		'mpeg4',
+		'avi',
+		'mpegps',
+	));
+});

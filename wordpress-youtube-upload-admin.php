@@ -93,6 +93,35 @@ add_action( 'init', function() {
 	exit;
 } );
 
+add_action( 'attachment_submitbox_misc_actions', function() {
+
+	$post = get_post();
+
+	if ( ! preg_match( '#^(video)/#', $post->post_mime_type ) ) {
+		return;
+	}
+
+	$youtube_video = new WP_Youtube_Upload_Attachment( $post );
+
+	?>
+
+	<?php if ( $schedule = wp_next_scheduled( 'wp_youtube_upload_new_video_attachment', array( 'attachment' => $post->ID ) ) ) : ?>
+		<div class="misc-pub-section misc-pub-mime-meta">
+			Queued for Youtube upload in <?php echo time() - $schedule ?> seconds.
+		</div>
+	<?php endif ?>
+
+	<div class="misc-pub-section misc-pub-mime-meta">
+		Uploaded to Youtube: <strong><?php echo $youtube_video->is_uploaded() ? 'Yes' : 'No' ?></strong>
+	</div>
+
+	<?php if ( $youtube_video->is_uploaded() ) : ?>
+		<div class="misc-pub-section misc-pub-mime-meta">
+			Youtube Processed: <strong><?php echo $youtube_video->is_processed() ? 'Yes' : 'No' ?></strong>
+		</div>
+	<?php endif ?>
+	<?php
+}, 11 );
 //add_action( 'init', function() {
 //
 //	global $shortcode_tags;
