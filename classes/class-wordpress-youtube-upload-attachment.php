@@ -315,9 +315,39 @@ class WP_Youtube_Upload_Attachment {
 		$this->set_upload_snippet( $data->getSnippet() );
 		$this->set_upload_status( $data->getStatus() );
 
+		if ( $data->getStatus()->getUploadStatus() === 'processed' ) {
+			$this->save_thumbnail_locally();
+		}
+
 		do_action( 'wp_youtube_upload_attachment_upload_data_updated', $this );
 
 		return true;
+	}
+
+	function save_thumbnail_locally() {
+
+		$snippet = $this->get_upload_snippet();
+
+		$file = download_url( $image_url = $snippet->getThumbnails()->getHigh()->getUrl() );
+
+		if ( is_wp_error( $file ) ) {
+			return $file;
+		}
+
+		$file_array             = array();
+		$file_array['name']     = strtok( pathinfo( $image_url, PATHINFO_BASENAME ), '?' );
+		$file_array['tmp_name'] = $file;
+
+		// do the validation and storage stuff
+		$return = wp_handle_sideload( $file_array, array( 'test_form' => false ) );
+
+		if ( is_wp_error( $return ) ) {
+			return $return;
+		}
+
+		$return['path'] = _wp_relative_upload_path( $return['file'] );
+
+		update_post_meta( $this->attachment->ID, '_youtube_thumbnail', $return );
 	}
 
 	/**
@@ -377,7 +407,8 @@ class WP_Youtube_Upload_Attachment {
 
 		//todo:: cleaner method of recovering file size from aws?
 
-		if ( $size = filesize( $this->get_post()->guid ) ) {
+		if ( $size = filesize( get_attached_file( $this->attachment->ID ) ) ) {
+			var_dump($size);
 			return $size;
 		}
 
@@ -431,40 +462,18 @@ class WP_Youtube_Upload_Attachment {
 	/**
 	 * Get a Google_Service_YouTube_Thumbnail object for the attachment
 	 *
-	 * @param array $args
+	 * @param array $size
 	 * @return bool|Google_Service_YouTube_Thumbnail
 	 */
-	function get_thumbnail( $args = array() ) {
+	function get_thumbnail( $size = array() ) {
 
-		//todo:: Bit clunky. Can use on the fly resizing?
-
-		$args = wp_parse_args( $args, array(
-			'width'   => '120',
-			'height'  => '90',
-		) );
-
-		if ( ! $this->get_upload_snippet() ) {
-			return false;
+		if ( ! $meta = get_post_meta( $this->attachment->ID, '_youtube_thumbnail', true ) ) {
+			return '';
 		}
 
-		$thumbnails = $this->get_upload_snippet()->getThumbnails();
+		$upload_dir = wp_upload_dir();
 
-		$thumbnails = array(
-			$thumbnails->getDefault(),
-			$thumbnails->getMedium(),
-			$thumbnails->getHigh(),
-		);
-
-		/* @var Google_Service_YouTube_Thumbnail $thumbnail */
-		foreach ( $thumbnails as $thumbnail ) {
-
-			if ( $thumbnail->getHeight() >= $args['height'] && $thumbnail->getWidth() >= $args['width'] ) {
-
-				return $thumbnail;
-			}
-		}
-
-		return end( $thumbnails );
+		return apply_filters( 'wp_youtube_thumbnail_url', trailingslashit( $upload_dir['baseurl'] ) . $meta['path'], $size );
 	}
 
 	/**
@@ -482,7 +491,7 @@ class WP_Youtube_Upload_Attachment {
 			ob_start(); ?>
 
 			<span class="video-thumbnail" href="<?php echo get_the_permalink( $this->get_post_id() ); ?>" style="display: inline-block; <?php echo ! empty( $args['height'] ) ? 'height: ' . $args['height'] . 'px;' : '' ?> <?php echo ! empty( $args['width'] ) ? 'width: ' . $args['width'] . 'px;' : '' ?>">
-				<img src="<?php echo $thumbnail->getUrl(); ?>" height="<?php echo ! empty( $args['height'] ) ? $args['height'] : '' ?>" width="<?php echo ! empty( $args['width'] ) ? $args['width'] : '' ?>" >
+				<img src="<?php echo esc_url( $thumbnail ) ?>" height="<?php echo ! empty( $args['height'] ) ? $args['height'] : '' ?>" width="<?php echo ! empty( $args['width'] ) ? $args['width'] : '' ?>" >
 			</span>
 
 			<?php $contents = ob_get_clean();

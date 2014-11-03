@@ -112,7 +112,13 @@ add_action( 'attachment_submitbox_misc_actions', function() {
 	<?php endif ?>
 
 	<div class="misc-pub-section misc-pub-mime-meta">
-		Uploaded to Youtube: <strong><?php echo $youtube_video->is_uploaded() ? 'Yes' : 'No' ?></strong>
+		Uploaded to Youtube: <strong>
+			<?php if ( $youtube_video->is_uploading() ) : ?>
+				Uploading...
+			<?php else : ?>
+				<?php echo $youtube_video->is_uploaded() ? 'Yes' : 'No' ?>
+			<?php endif ?>
+		</strong>
 	</div>
 
 	<?php if ( $youtube_video->is_uploaded() ) : ?>
