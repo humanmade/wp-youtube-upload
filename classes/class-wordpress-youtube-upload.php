@@ -115,7 +115,7 @@ class WP_Youtube_Upload {
 	 * Upload a given WP_Youtube_Upload_Attachment to youtube
 	 *
 	 * @param WP_Youtube_Upload_Attachment $attachment
-	 * @return bool|Google_Service_YouTube_Video
+	 * @return WP_Error|Google_Service_YouTube_Video
 	 */
 	public function upload_attachment( WP_Youtube_Upload_Attachment $attachment ) {
 
@@ -131,13 +131,22 @@ class WP_Youtube_Upload {
 			// Read the media file and upload it chunk by chunk.
 			$status = false;
 
-			//todo: seems like fopen on remote file requires far more loops... why?
 			$handle = fopen( $video_path, "rb" );
+			$buffer = '';
 
 			while ( ! $status && ! feof( $handle ) ) {
 
-				$chunk  = fread( $handle, $this->get_arg( 'chunk_size' ) );
-				$status = $media->nextChunk( $chunk );
+				$buffer .= fread( $handle, $this->get_arg( 'chunk_size' ) );
+
+				if ( strlen( $buffer ) > $this->get_arg( 'chunk_size' ) ) {
+					$status = $media->nextChunk( $buffer );
+					$buffer = '';
+				}
+			}
+
+			// finish the partial buffer off
+			if ( $buffer > '' ) {
+				$status = $media->nextChunk( $buffer );
 			}
 
 			fclose( $handle );
@@ -146,7 +155,7 @@ class WP_Youtube_Upload {
 
 			trigger_error( 'Error uploading attachment ' . $attachment->get_post_id() . ' to youtube: ' . $e->getMessage() );
 
-			return false;
+			return new WP_Error( $e->getCode(), $e->getMessage() );
 		}
 
 		$client->setDefer( false );

@@ -111,6 +111,12 @@ add_action( 'attachment_submitbox_misc_actions', function() {
 		</div>
 	<?php endif ?>
 
+	<?php if ( $error = $youtube_video->get_meta( 'youtube_last_error', true ) ) : ?>
+		<div class="misc-pub-section misc-pub-mime-meta">
+			Youtube Error: <strong><?php echo esc_html( $error->get_error_code() . ' - ' . $error->get_error_message() ) ?></strong>
+		</div>
+	<?php endif ?>
+
 	<div class="misc-pub-section misc-pub-mime-meta">
 		Uploaded to Youtube: <strong>
 			<?php if ( $youtube_video->is_uploading() ) : ?>

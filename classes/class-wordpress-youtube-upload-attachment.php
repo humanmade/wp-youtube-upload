@@ -345,6 +345,10 @@ class WP_Youtube_Upload_Attachment {
 			return $return;
 		}
 
+		if ( ! empty( $return['error'] ) ) {
+			return new WP_Error( 'wp_handle_upload_error', $return['error'] );
+		}
+
 		$return['path'] = _wp_relative_upload_path( $return['file'] );
 
 		update_post_meta( $this->attachment->ID, '_youtube_thumbnail', $return );
@@ -359,14 +363,16 @@ class WP_Youtube_Upload_Attachment {
 			return false;
 		}
 
+		$this->delete_meta( 'youtube_last_error' );
 		$this->set_is_uploading( true );
 
 		$yt     = new WP_Youtube_Upload();
 		$status = $yt->upload_attachment( $this );
 
-		if ( ! $status ) {
+		if ( is_wp_error( $status ) ) {
 
 			$this->set_is_uploading( false );
+			$this->set_meta( 'youtube_last_error', $status );
 			return false;
 		}
 
@@ -443,7 +449,7 @@ class WP_Youtube_Upload_Attachment {
 	 * @param $key
 	 * @return mixed
 	 */
-	protected function get_meta( $key ) {
+	public function get_meta( $key ) {
 
 		return get_post_meta( $this->get_post_id(), 'wp_youtube_upload_' . $key, true );
 	}
