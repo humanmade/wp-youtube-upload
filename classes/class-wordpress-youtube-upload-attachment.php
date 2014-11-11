@@ -335,7 +335,7 @@ class WP_Youtube_Upload_Attachment {
 		}
 
 		$file_array             = array();
-		$file_array['name']     = strtok( pathinfo( $image_url, PATHINFO_BASENAME ), '?' );
+		$file_array['name']     = md5( $file ) . '-' . strtok( pathinfo( $image_url, PATHINFO_BASENAME ), '?' );
 		$file_array['tmp_name'] = $file;
 
 		// do the validation and storage stuff
