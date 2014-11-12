@@ -47,6 +47,8 @@ add_action( 'edit_attachment', function( $attachment ) {
 		return;
 	}
 
+	$at->refresh_upload_data();
+
 	wp_schedule_single_event( time(), 'wp_youtube_update_video_attachment', array( 'attachment' => $attachment, 'time' => time() ) );
 } );
 
