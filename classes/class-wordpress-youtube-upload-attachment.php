@@ -533,7 +533,7 @@ class WP_Youtube_Upload_Attachment {
 
 			ob_start(); ?>
 
-			<iframe width="<?php echo esc_attr( $args['width'] ); ?>" height="<?php echo esc_attr( $args['height'] ); ?>" src="<?php echo esc_url( add_query_arg( $args, 'https://www.youtube.com/embed/' . $this->get_upload_id() ) ); ?>" frameborder="0" allowfullscreen></iframe>
+			<iframe id="<?php echo esc_attr( 'youtube-video-' . $this->attachment->ID ) ?>" class="wp-youtube-video" width="<?php echo esc_attr( $args['width'] ); ?>" height="<?php echo esc_attr( $args['height'] ); ?>" src="<?php echo esc_url( add_query_arg( $args, 'https://www.youtube.com/embed/' . $this->get_upload_id() ) ); ?>" frameborder="0" allowfullscreen></iframe>
 
 			<?php $content = ob_get_clean();
 
