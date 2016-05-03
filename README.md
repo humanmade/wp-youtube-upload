@@ -1,3 +1,5 @@
+_**This project is unmaintained.**_
+
 wp-youtube-upload
 =================
 
